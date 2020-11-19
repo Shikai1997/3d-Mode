@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<!-- keep the line below for OpenProcessing compatibility -->
+	<!-- <script src="https://www.openprocessing.org/openprocessing_sketch.js"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/addons/p5.sound.min.js"></script>
+	<!-- <script src="mySketch.js"></script> -->
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>   
+	
+</body>
+
+
+
+	<script>
+		let point;
+		let octahedron;
+		let size = 0;
+		let particle = [];
+
+		function preload() {
+			octahedron = loadModel('obj/Wolf_obj.obj',true);
+			body = loadImage('obj/textures/Wolf_Body.jpg')
+		}
+		function setup() {
+			createCanvas(windowWidth, windowHeight,WEBGL);
+			background(0);
+			
+			// 六邊形頂點坐標
+			point = [
+				{x:0,y:-150},
+				{x:129.90,y:-75},
+				{x:129.90,y:75},
+				{x:0,y:150},
+				{x:-129.90,y:75},
+				{x:-129.90,y:-75},
+			]
+		}
+
+		function draw() {
+			background(0)
+			rotateX(90)
+			// rotateZ(170)
+			rotateZ(170 + frameCount/3)
+			translate(0,0,-100)
+
+			
+			
+			
+			scale(0.9)
+			colorMode(HSB)
+			let H = map(mouseX,0,width,0,255)
+			let S = map(mouseY,0,height,50,100)
+			let B = 75
+			let clr = color(H,S,B)
+			let darkClr = color(H,S,100)
+			
+			drawCenter(clr)
+			drawAround(clr)
+
+			size  += 0.015
+			if(size>2.5){
+				size = 2.5
+			}
+			push()
+				scale(size)
+				translate(0,0,60)
+				rotateX(90)
+				noFill()
+				stroke(darkClr)
+				model(octahedron);
+			pop()
+
+			drawParticle(200,clr)
+
+
+			orbitControl()
+			
+		}
+
+		// 粒子效果
+		function drawParticle(amount,colo){
+			fill(colo)
+			noStroke()
+			if(particle.length <amount){
+				particle.push({
+						x:random(200),
+						y:random(200),
+						z:random(200)
+				})
+			}
+			
+			for(let i = 0; i<particle.length; i++){
+				push()
+				rotateZ(i*10)
+				
+				let point = particle[i]
+				
+				
+				translate(100 + point.x + sin(frameCount) * 30,
+									100 + point.y + sin(frameCount) * 30,
+									point.z)
+				sphere(5,14,14)
+				// Z軸
+				point.z *= 1.01
+				if(point.z > 500){
+					point.z = random(200)
+				}
+				pop()
+			}
+}
+
+
+		// 中心區塊
+		function drawCenter(clr){
+			push()
+					stroke(clr)
+					noFill()
+					strokeWeight(3)
+					// 半徑150
+					ellipse(0,0,300)
+					ellipse(0,0,100)
+					strokeWeight(1)
+
+					ellipse(0,0,60)
+					ellipse(0,0,50)
+
+					ellipse(0,0,20)
+					ellipse(0,0,10)
+
+					ellipse(0,75,20)
+					ellipse(0,75,10)
+
+					ellipse(0,-75,20)
+					ellipse(0,-75,10)
+
+					ellipse(86.5,0,20)
+					ellipse(86.5,0,10)
+
+					ellipse(-86.5,0,20)
+					ellipse(-86.5,0,10)
+
+					// 繪製正六邊形 外切圓半徑150
+					for(let i = 0; i<point.length -1; i++){
+
+						if(i == 0){
+							line(point[i].x,point[i].y,point[i+1].x,point[i+1].y)
+							line(point[i].x,point[i].y,point[point.length-1].x,point[point.length-1].y)
+
+							line(point[i].x,point[i].y,0,0)
+							line(point[point.length-1].x,point[point.length-1].y,0,0)
+						}else{
+
+							line(point[i].x,point[i].y,point[i+1].x,point[i+1].y)
+							line(point[i].x,point[i].y,0,0)
+						}
+					}
+
+					// 中間六芒星
+					for(let i = 0; i<point.length / 2 +1 ; i++){
+						line(point[i].x,point[i].y,point[i+2].x,point[i+2].y)
+					}
+						line(point[0].x,point[0].y,point[4].x,point[4].y)
+						line(point[1].x,point[1].y,point[5].x,point[5].y)
+
+
+					// 非以圓弧計算角度  使用外圈實心線蓋誤差值
+					push()
+						for(let i = 0 ; i<6; i++){
+								rotate(60)
+								arc(0, 150, 40, 40, 185, -5)
+								arc(0, 150, 50, 50, 185, -5)
+
+								arc(0, 150, 70, 70, 187, -7)
+								arc(0, 150, 80, 80, 187, -7)
+						}
+					pop()
+			pop()
+		}
+
+
+		//外圍區塊
+		function drawAround(clr){
+			push()
+			angleMode(DEGREES)
+				noFill()
+				stroke(clr)
+				ellipse(0,0,400)
+				ellipse(0,0,380)
+			
+				// 外圍方形
+				rectMode(CENTER)
+				strokeWeight(3)
+				push()
+					for(let i = 0; i<2; i++){
+							rotate(45)
+							rect(0,0,400,400)
+					}
+				pop()
+			
+				push()
+					for(let i = 0;i<8;i++){
+						rotate(45)
+						triangle(-190, -190, -110, -190, -190, -110)
+						triangle(-180, -180, -140, -180, -180, -140)
+					}
+				pop()
+			pop()
+		}
+
+
+	</script>
+</html>
